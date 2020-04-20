@@ -4,7 +4,7 @@ class FtimProvider extends FtimEventProvider {
   @override
   void timSystemAddFriend(List<String> list) {
     print('增加好友: ${json.encode(list)}');
-    _loadfriendList();
+    _loadFriendList();
     timFriendPendency.items.removeWhere((item) => list.contains(item.identifier));
     notifyListeners();
   }
@@ -55,12 +55,25 @@ class FtimProvider extends FtimEventProvider {
   }
 
   @override
-  void timNewMessage(TimMessage message) {
-    var conversation = conversationList.firstWhere((element) => element.peer == message.peer && element.type == message.type);
-    if (conversation != null) conversation.lastMsg = message;
-    if (currentConversation.peer == message.peer && currentConversation.type == message.type) {
-      currentConversationMsgList.add(message);
+  void onRefreshConversation(List<TimConversation> list) {
+    list.forEach((element) {
+      var conversation = conversationList.firstWhere((element) => element.peer == element.peer && element.type == element.type);
+      if (conversation != null) {
+        conversation.lastMsg = element.lastMsg;
+      } else {
+        conversationList.insert(0, element);
+      }
       notifyListeners();
+    });
+  }
+
+  @override
+  void timNewMessage(TimMessage message) {
+    if (currentConversation != null) {
+      if (currentConversation.peer == message.peer && currentConversation.type == message.type) {
+        currentConversationMsgList.add(message);
+        notifyListeners();
+      }
     }
   }
 
@@ -75,7 +88,7 @@ class FtimProvider extends FtimEventProvider {
   /// 加载数据
   void init() {
     _loadConversationList();
-    _loadfriendList();
+    _loadFriendList();
     _loadBlackList();
     _loadPendencyList();
   }
@@ -91,7 +104,7 @@ class FtimProvider extends FtimEventProvider {
   List<TimFriend> friendList = [];
 
   /// 获取朋友列表
-  void _loadfriendList() async {
+  void _loadFriendList() async {
     var list = await Ftim.get().getFriendList();
     friendList = list ?? [];
     notifyListeners();

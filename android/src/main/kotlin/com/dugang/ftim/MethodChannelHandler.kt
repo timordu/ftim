@@ -75,8 +75,8 @@ class MethodChannelHandler(private val context: Context, binaryMessenger: Binary
             "getConversation" -> ConversationMethodCall.getConversation(call, result)
             "getLocalMessage" -> ConversationMethodCall.getLocalMessage(call, result)
 
-            "sendTextMessage" -> ConversationMethodCall.sendTextMessage(call, result)
-            "sendImageMessage" -> ConversationMethodCall.sendImageMessage(call, result)
+            "sendTextMessage" -> ConversationMethodCall.sendTextMessage(call, eventSink)
+            "sendImageMessage" -> ConversationMethodCall.sendImageMessage(call, eventSink)
 
             else -> result.notImplemented()
         }
@@ -132,12 +132,11 @@ class MethodChannelHandler(private val context: Context, binaryMessenger: Binary
                 })
                 .setRefreshListener(object : TIMRefreshListener {
                     override fun onRefreshConversation(p0: MutableList<TIMConversation>?) {
-//                        val list = mutableListOf<MutableMap<String, Any?>>()
-//                        p0?.forEach {
-//                            list.add(it.toConversationMap())
-//                        }
-//                        eventSink?.success(list.toJson())
-//                        Log.d(TAG, "TIMRefreshListener：${list.toJson()}")
+                        val list = mutableListOf<MutableMap<String, Any?>>()
+                        p0?.forEach {
+                            list.add(it.toConversationMap())
+                        }
+                        eventSink?.success("refresh_conversation", list)
                         Log.d(TAG, "TIMRefreshListener：onRefreshConversation")
                     }
 
@@ -151,12 +150,14 @@ class MethodChannelHandler(private val context: Context, binaryMessenger: Binary
 
         // 消息监听
         TIMManager.getInstance().addMessageListener {
+            Log.d(TAG, "addMessageListener：addMessageListener")
+
             it.forEach { msg ->
                 when (msg.conversation.type) {
                     TIMConversationType.System -> eventSink?.success("System", msg.getElement(0).toElemMap())
                     TIMConversationType.C2C -> eventSink?.success("C2C", msg.toMessageMap())
                     TIMConversationType.Group -> eventSink?.success("Group", msg.toMessageMap())
-                    else -> eventSink?.success("Invalid", mutableMapOf())
+                    else -> eventSink?.success("Invalid", mutableMapOf<String,String>())
                 }
             }
             return@addMessageListener false

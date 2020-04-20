@@ -41,8 +41,8 @@ fun Result.response(code: Int = 0, message: String? = null, data: Any? = null) {
     success(mapOf("code" to code, "message" to message, "data" to data?.toJson()))
 }
 
-fun EventChannel.EventSink.success(type: String, data: MutableMap<String, Any?>) {
-    success(mapOf("type" to type, "data" to data))
+fun EventChannel.EventSink.success(type: String, data: Any) {
+    success(mapOf("type" to type, "data" to data.toJson()))
 }
 
 fun TIMConversation.toConversationMap(): MutableMap<String, Any?> {
@@ -50,8 +50,10 @@ fun TIMConversation.toConversationMap(): MutableMap<String, Any?> {
     var title: String? = null
     if (type == TIMConversationType.C2C) {
         val obj = TIMFriendshipManager.getInstance().queryUserProfile(peer)
-        faceUrl = obj.faceUrl
-        title = obj.nickName
+        obj.let {
+            faceUrl = it.faceUrl
+            title = it.nickName
+        }
     } else if (type == TIMConversationType.Group) {
 
     }
@@ -72,7 +74,7 @@ fun TIMMessage.toMessageMap(): MutableMap<String, Any?> {
             "type" to conversation.type,
             "msgId" to msgId,
             "msgUniqueId" to msgUniqueId,
-            "sender" to TIMFriendshipManager.getInstance().queryUserProfile(sender).toMap(),
+            "sender" to sender.let { TIMFriendshipManager.getInstance().queryUserProfile(it).toMap() },
             "isSelf" to (sender == TIMManager.getInstance().loginUser),
             "msgTime" to timestamp(),
             "isPeerReaded" to isPeerReaded,

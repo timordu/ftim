@@ -1,11 +1,9 @@
 package com.dugang.ftim.dispatch
 
 import android.util.Log
-import com.dugang.ftim.response
-import com.dugang.ftim.toConversationMap
-import com.dugang.ftim.toJson
-import com.dugang.ftim.toMessageMap
+import com.dugang.ftim.*
 import com.tencent.imsdk.*
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
@@ -19,7 +17,7 @@ object ConversationMethodCall {
     //获取会话列表
     fun getConversationList(result: MethodChannel.Result) {
         val list = TIMManager.getInstance().conversationList.map { it.toConversationMap() }.toList()
-        result.success((list ?: mutableListOf()).toJson())
+        result.success(list.toJson())
     }
 
     private fun getConversation(call: MethodCall): TIMConversation {
@@ -32,15 +30,15 @@ object ConversationMethodCall {
         return TIMManager.getInstance().getConversation(type, peer)
     }
 
-    private fun sendMessage(call: MethodCall, result: MethodChannel.Result, message: TIMMessage) {
+    private fun sendMessage(call: MethodCall, eventSink: EventChannel.EventSink?, message: TIMMessage) {
         getConversation(call).sendMessage(message, object : TIMValueCallBack<TIMMessage> {
             override fun onSuccess(p0: TIMMessage?) {
-                result.response()
-                Log.d("FtimPlugin", "${p0.toMessageMap().toJson()}")
+                Log.d("FtimPlugin/sendMessage", p0.toMessageMap().toJson())
+                eventSink?.success("Message", p0.toMessageMap() ?: mutableMapOf<String,String>())
+
             }
 
             override fun onError(p0: Int, p1: String?) {
-                result.response(p0, p1)
                 Log.d("FtimPlugin", "$p0,$p1")
             }
         })
@@ -76,7 +74,7 @@ object ConversationMethodCall {
 
 
     //发送文本消息
-    fun sendTextMessage(call: MethodCall, result: MethodChannel.Result) {
+    fun sendTextMessage(call: MethodCall, eventSink: EventChannel.EventSink?) {
         val content = call.argument<String>("content")
 
         val msg = TIMMessage().apply {
@@ -84,11 +82,11 @@ object ConversationMethodCall {
                 text = content
             })
         }
-        sendMessage(call, result, msg)
+        sendMessage(call, eventSink, msg)
     }
 
     // 发送图片消息
-    fun sendImageMessage(call: MethodCall, result: MethodChannel.Result) {
+    fun sendImageMessage(call: MethodCall, eventSink: EventChannel.EventSink?) {
         val images = call.argument<List<String>>("images")
 
         val msg = TIMMessage().apply {
@@ -98,7 +96,7 @@ object ConversationMethodCall {
                 })
             }
         }
-        sendMessage(call, result, msg)
+        sendMessage(call, eventSink, msg)
 
     }
 

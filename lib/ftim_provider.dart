@@ -14,26 +14,25 @@ abstract class FtimEventProvider extends ChangeNotifier {
   }
 
   void _onEvent(Object obj) {
-    var jsonObj = jsonDecode(obj as String);
-    if (jsonObj.runtimeType.toString() == 'List<dynamic>') {
-      (jsonObj as List).forEach((element) => _handlerMessage(element));
-    } else if (jsonObj.runtimeType.toString() == 'Map<dynamic,dynamic>') {
-      switch (jsonObj['type']) {
-        case 'C2C':
-        case 'Group':
-          _handlerMessage(jsonObj['data']);
-          break;
-        case 'System':
-          _handlerSystemMessage(jsonObj['data']);
-          break;
-        default:
-      }
-    }
-  }
+    var msgMap = obj as Map;
+    var msgType = msgMap['type'];
+    var msgData = jsonDecode(msgMap['data']);
 
-  /// 处理普通消息
-  void _handlerMessage(Map data) {
-    timNewMessage(TimConversation.fromJson(data).lastMsg);
+    switch (msgType) {
+      case 'refresh_conversation':
+        onRefreshConversation(getTimConversationList(msgData));
+        break;
+      case 'Message':
+        timNewMessage(TimMessage.fromJson(msgData));
+        break;
+      case 'C2C':
+      case 'Group':
+        break;
+      case 'System':
+        _handlerSystemMessage(jsonDecode(msgMap['data']));
+        break;
+      default:
+    }
   }
 
   /// 处理系统消息
@@ -99,6 +98,9 @@ abstract class FtimEventProvider extends ChangeNotifier {
 
   ///  关系链资料变更
   void timSystemProfileChange(List<String> list);
+
+  /// 会话刷新事件
+  void onRefreshConversation(List<TimConversation> list);
 
   /// 收到新消息
   void timNewMessage(TimMessage message);
