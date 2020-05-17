@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:ftim_example/export.dart';
 
 class MessageWidget {
-  MessageWidget(this.message);
+  MessageWidget(this.context, this.message);
 
+  final BuildContext context;
   final TimMessage message;
 
   bool get _isTextMsg => message.element['type'] == 'Text';
@@ -75,10 +76,13 @@ class MessageWidget {
   }
 
   Widget _textMessage(TimTextElem elem) {
-    return ChatRichTextWidget(
-      elem.text,
-      color: message.isSelf ? Colors.lightGreenAccent[100] : Colors.lightBlueAccent[100],
-      anglePos: message.isSelf ? BubbleAngleDirection.right : BubbleAngleDirection.left,
+    return LimitedBox(
+      maxWidth: MediaQuery.of(context).size.width * 0.75,
+      child: BubbleWidget(
+        color: message.isSelf ? Colors.lightGreenAccent[100] : Colors.lightBlueAccent[100],
+        direction: message.isSelf ? BubbleDirection.right : BubbleDirection.left,
+        child: ExtendedText(elem.text, specialTextSpanBuilder: TextSpanBuilder(BuilderType.extendedText)),
+      ),
     );
   }
 

@@ -134,7 +134,7 @@ class MethodChannelHandler(private val context: Context, binaryMessenger: Binary
                     override fun onRefreshConversation(p0: MutableList<TIMConversation>?) {
                         val list = mutableListOf<MutableMap<String, Any?>>()
                         p0?.forEach {
-                            list.add(it.toConversationMap())
+//                            list.add(it.toConversationMap())
                         }
                         eventSink?.success("refresh_conversation", list)
                         Log.d(TAG, "TIMRefreshListener：onRefreshConversation")

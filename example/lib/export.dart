@@ -19,6 +19,7 @@ export 'package:ftim_example/util/date.dart';
 export 'package:ftim_example/util/file.dart';
 export 'package:ftim_example/util/sp.dart';
 export 'package:ftim_example/util/store.dart';
+export 'package:ftim_example/util/emoji.dart';
 
 // page
 export 'package:ftim_example/config.dart';
@@ -47,7 +48,7 @@ export 'package:ftim_example/bean/contact.dart';
 export 'package:ftim_example/widgets/widget_chat_emoji.dart';
 export 'package:ftim_example/widgets/widget_chat_more.dart';
 export 'package:ftim_example/widgets/widget_chat_amap.dart';
-export 'package:ftim_example/widgets/widget_chat_rich_text.dart';
+export 'package:ftim_example/widgets/widget_bubble.dart';
 export 'package:ftim_example/widgets/widget_chat_message.dart';
 
 export 'package:ftim_example/widgets/keyboard.dart';

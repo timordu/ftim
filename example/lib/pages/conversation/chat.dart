@@ -98,7 +98,9 @@ class _ChatPageState extends State<ChatPage> {
                     return ListView.builder(
                         controller: _controller,
                         itemCount: snapshot.currentConversationMsgList.length,
-                        itemBuilder: (context, index) => MessageWidget(snapshot.currentConversationMsgList[index]).build());
+                        itemBuilder: (context, index) {
+                          return MessageWidget(context, snapshot.currentConversationMsgList[index]).build();
+                        });
                   }))),
           Container(
               height: bottomHeight,
@@ -114,7 +116,13 @@ class _ChatPageState extends State<ChatPage> {
                       moreBtn(),
                       sendBtn(),
                     ])),
-                Offstage(offstage: !emojiShow, child: ChatEmojiWidget(callBack: (key) {})),
+                Offstage(
+                    offstage: !emojiShow,
+                    child: ChatEmojiWidget(callBack: (key) {
+                      setState(() {
+                        textMsg += '[$key]';
+                      });
+                    })),
                 Offstage(offstage: !moreShow, child: ChatMoreWidget(callBack: (key) => chartMoreEvent(key))),
               ]))
         ])));
@@ -146,8 +154,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget textInput() {
     return CupertinoTextField(
       onTap: () => calculateHeight(),
-      padding: EdgeInsets.all(5),
-      style: TextStyle(fontSize: 13),
+      style: TextStyle(fontSize: 10),
       maxLines: 4,
       minLines: 1,
       focusNode: focusNode,
