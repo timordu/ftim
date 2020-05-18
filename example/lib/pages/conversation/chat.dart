@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/painting.dart';
 import 'package:ftim_example/export.dart';
+
+import '../../util/emoji.dart';
 
 class ChatPage extends StatefulWidget {
   ChatPage(this.conversation);
@@ -44,8 +47,8 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void calculateHeight({bool voice, bool emoji, bool more}) {
-    double aviableHeight = Config.screenHeight(context) - 80;
-    double bottom = (emoji ?? false) || (more ?? false) ? 300 : 45;
+    double availableHeight = Config.screenHeight(context) - 80;
+    double bottom = (emoji ?? false) || (more ?? false) ? 300 : 68;
     if (voice != null && !voice) focusNode.requestFocus();
     if (emoji != null) emoji ? focusNode.unfocus() : focusNode.requestFocus();
     if (more != null) more ? focusNode.unfocus() : focusNode.requestFocus();
@@ -57,7 +60,7 @@ class _ChatPageState extends State<ChatPage> {
         emojiShow = emoji ?? false;
         moreShow = more ?? false;
 
-        contentHeight = aviableHeight - bottom;
+        contentHeight = availableHeight - bottom;
         bottomHeight = bottom;
       }),
     );
@@ -86,28 +89,32 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(elevation: 0, title: Text(widget.conversation.title, style: TextStyle(fontSize: 20)), actions: <Widget>[]),
-        body: SingleChildScrollView(
-            child: Column(children: <Widget>[
-          GestureDetector(
-              onTap: () => focusNode.unfocus(),
-              child: Container(
-                  height: contentHeight,
-                  child: Store.connect<FtimProvider>(builder: (context, snapshot, child) {
-                    Timer(Duration(microseconds: 50), () => _controller.jumpTo(_controller.position.maxScrollExtent));
-                    return ListView.builder(
-                        controller: _controller,
-                        itemCount: snapshot.currentConversationMsgList.length,
-                        itemBuilder: (context, index) {
-                          return MessageWidget(context, snapshot.currentConversationMsgList[index]).build();
-                        });
-                  }))),
+        appBar: AppBar(
+            elevation: 0,
+            title: Text(widget.conversation.title, style: TextStyle(fontSize: 20)),
+            actions: <Widget>[]),
+        body: Column(children: <Widget>[
+//          GestureDetector(
+//              onTap: () => focusNode.unfocus(),
+//              child: Container(
+//                  height: contentHeight,
+//                  child: Store.connect<FtimProvider>(builder: (context, snapshot, child) {
+//                    Timer(Duration(microseconds: 50),
+//                        () => _controller.jumpTo(_controller.position.maxScrollExtent));
+//                    return ListView.builder(
+//                        controller: _controller,
+//                        itemCount: snapshot.currentConversationMsgList.length,
+//                        itemBuilder: (context, index) {
+//                          return MessageWidget(context, snapshot.currentConversationMsgList[index])
+//                              .build();
+//                        });
+//                  }))),
           Container(
               height: bottomHeight,
-              color: Colors.grey[100],
+              color: Colors.grey[200],
               child: Column(children: <Widget>[
                 Container(
-                    color: Colors.white,
+                    color: Colors.grey[100],
                     padding: EdgeInsets.all(10),
                     child: Row(children: <Widget>[
                       voiceBtn(),
@@ -116,16 +123,14 @@ class _ChatPageState extends State<ChatPage> {
                       moreBtn(),
                       sendBtn(),
                     ])),
-                Offstage(
-                    offstage: !emojiShow,
-                    child: ChatEmojiWidget(callBack: (key) {
-                      setState(() {
-                        textMsg += '[$key]';
-                      });
-                    })),
-                Offstage(offstage: !moreShow, child: ChatMoreWidget(callBack: (key) => chartMoreEvent(key))),
+                Visibility(
+                    visible: emojiShow,
+                    child: ChatEmojiWidget(callBack: (key) => setState(() => textMsg += '[$key]'))),
+                Visibility(
+                    visible: moreShow,
+                    child: ChatMoreWidget(callBack: (key) => chartMoreEvent(key))),
               ]))
-        ])));
+        ]));
   }
 
   /// 语音按钮
@@ -134,7 +139,8 @@ class _ChatPageState extends State<ChatPage> {
         onTap: () => calculateHeight(voice: !voiceShow),
         child: Container(
           margin: EdgeInsets.only(right: 10),
-          child: Image.asset(FileUtil.loadImage('${voiceShow ? 'keyboard' : 'voice'}.png'), width: 25),
+          child:
+              Image.asset(FileUtil.loadImage('${voiceShow ? 'keyboard' : 'voice'}.png'), width: 25),
         ));
   }
 
@@ -152,17 +158,23 @@ class _ChatPageState extends State<ChatPage> {
 
   ///文本输入
   Widget textInput() {
-    return CupertinoTextField(
-      onTap: () => calculateHeight(),
-      style: TextStyle(fontSize: 10),
-      maxLines: 4,
-      minLines: 1,
-      focusNode: focusNode,
-      controller: TextEditingController.fromValue(TextEditingValue(
-        text: textMsg,
-        selection: TextSelection.fromPosition(TextPosition(affinity: TextAffinity.downstream, offset: textMsg.length)),
-      )),
-      onChanged: (text) => setState(() => textMsg = text),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: 35),
+      child: Container(
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(7)),
+        child: ExtendedTextField(
+          style: TextStyle(fontSize: 16),
+          maxLines: 4,
+          minLines: 1,
+          focusNode: focusNode,
+          specialTextSpanBuilder: TextSpanBuilder(BuilderType.extendedTextField),
+          controller: TextEditingController.fromValue(TextEditingValue(text: textMsg)),
+          decoration: InputDecoration(
+              contentPadding: const EdgeInsets.all(7),
+              border: OutlineInputBorder(borderSide: BorderSide.none)),
+          onChanged: (text) => setState(() => textMsg = text),
+        ),
+      ),
     );
   }
 
@@ -172,7 +184,8 @@ class _ChatPageState extends State<ChatPage> {
         onTap: () => calculateHeight(emoji: !emojiShow),
         child: Container(
           margin: EdgeInsets.only(left: 10, right: 10),
-          child: Image.asset(FileUtil.loadImage('${emojiShow ? 'keyboard' : 'emoji'}.png'), width: 25),
+          child:
+              Image.asset(FileUtil.loadImage('${emojiShow ? 'keyboard' : 'emoji'}.png'), width: 25),
         ));
   }
 
@@ -200,7 +213,8 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 onTap: () {
                   if (textMsg.isEmpty) {
-                    BotToast.showText(text: '不能发送空的消息', textStyle: TextStyle(fontSize: 12, color: Colors.white));
+                    BotToast.showText(
+                        text: '不能发送空的消息', textStyle: TextStyle(fontSize: 12, color: Colors.white));
                   } else {
                     widget.conversation.sendTextMessage(textMsg);
                     setState(() => textMsg = '');

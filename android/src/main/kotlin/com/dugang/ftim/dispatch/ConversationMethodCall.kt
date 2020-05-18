@@ -33,8 +33,8 @@ object ConversationMethodCall {
     private fun sendMessage(call: MethodCall, eventSink: EventChannel.EventSink?, message: TIMMessage) {
         getConversation(call).sendMessage(message, object : TIMValueCallBack<TIMMessage> {
             override fun onSuccess(p0: TIMMessage?) {
-                Log.d("FtimPlugin/sendMessage", p0.toMessageMap().toJson())
-                eventSink?.success("Message", p0.toMessageMap() ?: mutableMapOf<String,String>())
+                Log.d("FtimPlugin/sendMessage", p0?.toMessageMap().toJson())
+                eventSink?.success("Message", p0?.toMessageMap() ?: mutableMapOf<String,String>())
 
             }
 
@@ -54,7 +54,7 @@ object ConversationMethodCall {
         val conversation = getConversation(call)
         conversation.getLocalMessage(PAGE_SIZE, null, object : TIMValueCallBack<List<TIMMessage>> {
             override fun onSuccess(p0: List<TIMMessage>?) {
-                val list = p0?.map { it.toMessageMap() }.toList()
+                val list = p0?.map { it.toMessageMap() }?.toList()
                 result.success((list ?: mutableListOf()).toJson())
             }
 

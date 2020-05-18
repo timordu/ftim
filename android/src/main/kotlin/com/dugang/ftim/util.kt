@@ -62,7 +62,7 @@ fun TIMConversation.toConversationMap(): MutableMap<String, Any?> {
             "peer" to peer,
             "type" to type,
             "unRead" to unreadMessageNum,
-            "lastMsg" to lastMsg.toMessageMap(),
+            "lastMsg" to lastMsg?.toMessageMap(),
             "faceUrl" to faceUrl,
             "title" to title
     )
