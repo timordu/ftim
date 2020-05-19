@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/painting.dart';
 import 'package:ftim_example/export.dart';
 
 import '../../util/emoji.dart';
@@ -48,22 +46,37 @@ class _ChatPageState extends State<ChatPage> {
 
   void calculateHeight({bool voice, bool emoji, bool more}) {
     double availableHeight = Config.screenHeight(context) - 80;
-    double bottom = (emoji ?? false) || (more ?? false) ? 300 : 68;
-    if (voice != null && !voice) focusNode.requestFocus();
-    if (emoji != null) emoji ? focusNode.unfocus() : focusNode.requestFocus();
-    if (more != null) more ? focusNode.unfocus() : focusNode.requestFocus();
+    double bottom = (emoji ?? false) || (more ?? false) ? 310 : 55;
+    if (bottom == 310) {
+      if (voice != null && !voice) focusNode.requestFocus();
+      if (emoji != null) emoji ? focusNode.unfocus() : focusNode.requestFocus();
+      if (more != null) more ? focusNode.unfocus() : focusNode.requestFocus();
 
-    Timer(
-      Duration(milliseconds: 130),
-      () => setState(() {
+      Timer(Duration(milliseconds: 150), () {
+        setState(() {
+          voiceShow = voice ?? false;
+          emojiShow = emoji ?? false;
+          moreShow = more ?? false;
+
+          contentHeight = availableHeight - bottom;
+          bottomHeight = bottom;
+        });
+      });
+    } else {
+      setState(() {
         voiceShow = voice ?? false;
         emojiShow = emoji ?? false;
         moreShow = more ?? false;
 
         contentHeight = availableHeight - bottom;
         bottomHeight = bottom;
-      }),
-    );
+      });
+      Timer(Duration(milliseconds: 50), () {
+        if (voice != null && !voice) focusNode.requestFocus();
+        if (emoji != null) emoji ? focusNode.unfocus() : focusNode.requestFocus();
+        if (more != null) more ? focusNode.unfocus() : focusNode.requestFocus();
+      });
+    }
   }
 
   void chartMoreEvent(String key) async {
@@ -94,21 +107,26 @@ class _ChatPageState extends State<ChatPage> {
             title: Text(widget.conversation.title, style: TextStyle(fontSize: 20)),
             actions: <Widget>[]),
         body: Column(children: <Widget>[
-//          GestureDetector(
-//              onTap: () => focusNode.unfocus(),
-//              child: Container(
-//                  height: contentHeight,
-//                  child: Store.connect<FtimProvider>(builder: (context, snapshot, child) {
-//                    Timer(Duration(microseconds: 50),
-//                        () => _controller.jumpTo(_controller.position.maxScrollExtent));
-//                    return ListView.builder(
-//                        controller: _controller,
-//                        itemCount: snapshot.currentConversationMsgList.length,
-//                        itemBuilder: (context, index) {
-//                          return MessageWidget(context, snapshot.currentConversationMsgList[index])
-//                              .build();
-//                        });
-//                  }))),
+          Expanded(
+            child: GestureDetector(
+                onTap: () => focusNode.unfocus(),
+                child: Container(
+                    height: contentHeight,
+                    child: Store.connect<FtimProvider>(builder: (context, snapshot, child) {
+                      Timer(Duration(microseconds: 50),
+                          () => _controller.jumpTo(_controller.position.maxScrollExtent));
+                      return ListView.builder(
+                          controller: _controller,
+                          itemCount: snapshot.currentConversationMsgList.length,
+                          itemBuilder: (context, index) {
+                            return MessageWidget(
+                              context,
+                              snapshot.currentConversationMsgList[index],
+                              imageClick: (elem) =>StaticRouter.toImagePreview(context, elem),
+                            ).build();
+                          });
+                    }))),
+          ),
           Container(
               height: bottomHeight,
               color: Colors.grey[200],
@@ -147,7 +165,7 @@ class _ChatPageState extends State<ChatPage> {
   ///语音输入
   Widget voiceInput() {
     return Container(
-        height: 25,
+        height: 35,
         child: FlatButton(
           color: Colors.grey[300],
           onPressed: () {},
@@ -158,24 +176,32 @@ class _ChatPageState extends State<ChatPage> {
 
   ///文本输入
   Widget textInput() {
+    // fixme 无法同时展示4行输入内容
     return ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: 35),
-      child: Container(
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(7)),
-        child: ExtendedTextField(
-          style: TextStyle(fontSize: 16),
-          maxLines: 4,
-          minLines: 1,
-          focusNode: focusNode,
-          specialTextSpanBuilder: TextSpanBuilder(BuilderType.extendedTextField),
-          controller: TextEditingController.fromValue(TextEditingValue(text: textMsg)),
-          decoration: InputDecoration(
-              contentPadding: const EdgeInsets.all(7),
-              border: OutlineInputBorder(borderSide: BorderSide.none)),
-          onChanged: (text) => setState(() => textMsg = text),
-        ),
-      ),
-    );
+        constraints: BoxConstraints(maxHeight: 35),
+        child: Container(
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(7)),
+            child: ExtendedTextField(
+              style: TextStyle(fontSize: 16),
+              maxLines: 4,
+              minLines: 1,
+              focusNode: focusNode,
+              specialTextSpanBuilder: TextSpanBuilder(BuilderType.extendedTextField),
+              controller: TextEditingController.fromValue(
+                TextEditingValue(
+                  text: textMsg,
+                  selection: TextSelection.fromPosition(
+                    TextPosition(affinity: TextAffinity.downstream, offset: textMsg.length),
+                  ),
+                ),
+              ),
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.all(7),
+                border: OutlineInputBorder(borderSide: BorderSide.none),
+              ),
+              onChanged: (text) => setState(() => textMsg = text),
+              onTap: () => calculateHeight(),
+            )));
   }
 
   /// 表情按钮

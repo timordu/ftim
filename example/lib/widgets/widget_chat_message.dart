@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:ftim_example/export.dart';
 
+typedef ImageClick(TimImageElem elem);
+
 class MessageWidget {
-  MessageWidget(this.context, this.message);
+  MessageWidget(this.context, this.message, {this.imageClick});
 
   final BuildContext context;
   final TimMessage message;
+  final ImageClick imageClick;
 
   bool get _isTextMsg => message.element['type'] == 'Text';
 
@@ -30,17 +33,23 @@ class MessageWidget {
     var row = message.isSelf
         ? Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: _isTextMsg ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-                Container(margin: EdgeInsets.only(right: 10), child: _elementDispatcher(message.element)),
+                Container(
+                  margin: EdgeInsets.only(right: 10),
+                  child: _elementDispatcher(message.element),
+                ),
                 Avatar.builder(message.sender.faceUrl),
               ])
         : Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: _isTextMsg ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
                 Avatar.builder(message.sender.faceUrl),
-                Container(margin: EdgeInsets.only(left: 10), child: _elementDispatcher(message.element)),
+                Container(
+                  margin: EdgeInsets.only(left: 10),
+                  child: _elementDispatcher(message.element),
+                )
               ]);
     return Container(
       margin: EdgeInsets.only(top: 10, bottom: 10),
@@ -81,7 +90,8 @@ class MessageWidget {
       child: BubbleWidget(
         color: message.isSelf ? Colors.lightGreenAccent[100] : Colors.lightBlueAccent[100],
         direction: message.isSelf ? BubbleDirection.right : BubbleDirection.left,
-        child: ExtendedText(elem.text, specialTextSpanBuilder: TextSpanBuilder(BuilderType.extendedText)),
+        child: ExtendedText(elem.text,
+            specialTextSpanBuilder: TextSpanBuilder(BuilderType.extendedText)),
       ),
     );
   }
@@ -92,11 +102,15 @@ class MessageWidget {
       image = elem.imageList.firstWhere((e) => e.type == 'Thumb');
     }
     return image != null
-        ? Container(
-            width: image.width.toDouble() / 2,
-            height: image.height.toDouble() / 2,
-            child: CachedNetworkImage(imageUrl: image.url),
-          )
+        ? GestureDetector(
+            onTap: () {
+              if (imageClick != null) imageClick(elem);
+            },
+            child: Container(
+              width: image.width.toDouble() / 2,
+              height: image.height.toDouble() / 2,
+              child: CachedNetworkImage(imageUrl: image.url),
+            ))
         : Container();
   }
 }

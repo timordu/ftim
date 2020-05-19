@@ -41,6 +41,8 @@ export 'package:ftim_example/pages/mine/mine.dart';
 export 'package:ftim_example/pages/mine/my_info.dart';
 export 'package:ftim_example/pages/mine/edit_info.dart';
 
+export 'package:ftim_example/pages/common/image_preview.dart';
+
 // bean
 export 'package:ftim_example/bean/contact.dart';
 

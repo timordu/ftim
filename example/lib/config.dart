@@ -63,6 +63,11 @@ class StaticRouter {
     Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => ChatPage(conversation)), ModalRoute.withName('/home'));
   }
 
+  /// 单聊界面
+  static void toImagePreview(BuildContext context, TimImageElem elem) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImagePreviewPage(elem)));
+  }
+
   /// 位置搜索界面
   static void toChatLocation(BuildContext context) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatAmapWidget()));
